@@ -14,8 +14,6 @@ var assistant = new AssistantV1({
 });
 
 
-
-
 function initRestAPI() {
   var restAPI = express();
   restAPI.use(bodyParser.urlencoded({ extended: true }));
@@ -31,6 +29,8 @@ function initRestAPI() {
     });
   });
 
+var is_translating = false;
+
   router.route('/chat')
     .get(function (req, res) {
       assistant.message({
@@ -43,7 +43,26 @@ function initRestAPI() {
           res.json({ "error": err })
         } else {
           console.log(JSON.stringify(response, null, 2));
-          res.json(response);
+          if (response.context.action.action == 'translate') {
+            //start translating
+            is_translating = true;
+            res.json(response);
+          } else if (response.context.action.action == 'end_translate') {
+            //end translating
+            is_translating = false;
+            res.json(response);
+          } else {
+            if (is_translating) {
+              // translate user's message
+              var promise = translate.translate(req.body.message);
+                promise.then(function(result) {
+                res.json({output: {text: [result], language: "cz"}});
+              });
+            } else {
+              // regular message
+              res.json(response);
+            }
+          }
         }
       });
     })
