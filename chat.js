@@ -1,3 +1,5 @@
+var translate = require('./translate')
+
 var AssistantV1 = require('watson-developer-cloud/assistant/v1');
 var workspaceId = conversationWorkspaceId = '76ceb03d-f023-444c-8d7b-79d6bb48b461';
 
@@ -22,8 +24,11 @@ function initRestAPI() {
   var port = 80;
   var router = express.Router();
 
-  router.get('/', function (req, res) {
-    res.json({ message: 'Test'});
+  router.get('/translate', function (req, res) {
+    var promise = translate.translate("Hello, world!");
+    promise.then(function(result) {
+      res.json({message: result});
+    });
   });
 
   router.route('/chat')
